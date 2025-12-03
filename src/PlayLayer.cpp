@@ -314,73 +314,47 @@ class $modify(MyPlayLayer, PlayLayer) {
 
 			if (!getModBool("changeDeathText")) continue;
 			auto fontID = getModInt("customFont");
-			int originalZOrder = hopefullyALabel->getZOrder();
+			auto labelParent = hopefullyALabel->getParent();
+			int labelZOrder = hopefullyALabel->getZOrder();
 
-			if (fontID == -3 && fontFile == "goldFont.fnt") {
-				// underlay
-				CCLabelBMFont* underlayLabel = CCLabelBMFont::create(nodeString.c_str(), "newBestFontUnderlay.fnt"_spr);
-				underlayLabel->setID("oxygene-underlay-label"_spr);
-				
+			CCLabelBMFont* underlayLabel = nullptr;
+			if (fontID == -3) {
+				underlayLabel = CCLabelBMFont::create(nodeString.c_str(), "newBestFontUnderlay.fnt"_spr);
+				underlayLabel->setID("new-best-underlay-label"_spr);
 				underlayLabel->setPosition(hopefullyALabel->getPosition());
 				underlayLabel->setScale(hopefullyALabel->getScale());
 				underlayLabel->setRotation(hopefullyALabel->getRotation());
 				underlayLabel->setAnchorPoint(hopefullyALabel->getAnchorPoint());
 				underlayLabel->setExtraKerning(4);
+
+				if (labelParent) labelParent->addChild(underlayLabel, labelZOrder - 1);
 				
-				if (CCNode* parent = hopefullyALabel->getParent()) {
-					parent->addChild(underlayLabel);
-					underlayLabel->setZOrder(originalZOrder - 1);
-				}
-				
-				// main label stuff
 				hopefullyALabel->setFntFile("newBestFont.fnt"_spr);
 				hopefullyALabel->setExtraKerning(4);
-				hopefullyALabel->setZOrder(originalZOrder);
 				randomString = utils::string::toUpper(randomString); // oxygene one does not support lowercase chars
 				randomString = utils::string::replace(randomString, "\"", "\'\'"); // oxygene one does not support `"` char
 			}
 
 			if (!randomString.empty()) {
 				hopefullyALabel->setString(randomString.c_str(), true);
-				
-				if (fontID == -3) {
-					if (CCNode* parent = hopefullyALabel->getParent()) {
-						if (auto underlayLabel = typeinfo_cast<CCLabelBMFont*>(parent->getChildByID("oxygene-underlay-label"_spr))) {
-							std::string underlayString = randomString;
-							underlayString = utils::string::toUpper(underlayString);
-							underlayString = utils::string::replace(underlayString, "\"", "\'\'");
-							underlayLabel->setString(underlayString.c_str(), true);
-						}
-					}
-				}
+				if (underlayLabel) underlayLabel->setString(randomString.c_str(), true);
 			}
 
 			if (getModBool("lineWrapping")) {
-				hopefullyALabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+				hopefullyALabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter); // center text
 				float scale = .25f * (155.f / static_cast<float>(randomString.length()));
 				if (scale > Mod::get()->getSettingValue<double>("maxScale")) scale = static_cast<float>(Mod::get()->getSettingValue<double>("maxScale"));
-				hopefullyALabel->setWidth(420.f);
+				hopefullyALabel->setWidth(420.f); // width of end screen minus 20px, not marajuana referenec
 				hopefullyALabel->setScale(scale);
-				
-				if (fontID == -3) {
-					if (CCNode* parent = hopefullyALabel->getParent()) {
-						if (auto underlayLabel = typeinfo_cast<CCLabelBMFont*>(parent->getChildByID("oxygene-underlay-label"_spr))) {
-							underlayLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-							underlayLabel->setWidth(420.f);
-							underlayLabel->setScale(scale);
-						}
-					}
+
+				if (underlayLabel) {
+					underlayLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+					underlayLabel->setWidth(420.f);
+					underlayLabel->setScale(scale);
 				}
 			} else {
-				hopefullyALabel->limitLabelWidth(420.f, 10.f, .25f);
-				
-				if (fontID == -3) {
-					if (CCNode* parent = hopefullyALabel->getParent()) {
-						if (auto underlayLabel = typeinfo_cast<CCLabelBMFont*>(parent->getChildByID("oxygene-underlay-label"_spr))) {
-							underlayLabel->limitLabelWidth(420.f, 10.f, .25f);
-						}
-					}
-				}
+				hopefullyALabel->limitLabelWidth(420.f, 10.f, .25f); // you never know how long these custom strings might get
+				if (underlayLabel) underlayLabel->limitLabelWidth(420.f, 10.f, .25f);
 			}
 
 			if (fontID == -2) hopefullyALabel->setFntFile("chatFont.fnt");
