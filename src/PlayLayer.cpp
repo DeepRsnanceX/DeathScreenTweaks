@@ -276,8 +276,13 @@ class $modify(MyPlayLayer, PlayLayer) {
 			if (hasKeyLabelForReal) coinsCollectedLabel->setPositionY(coinsCollectedLabel->getPositionY() - 18.f);
 		}
 
+		// i thought this was easier than moving all the underlay creation to before this honestly
+		// hope it's not bad
 		std::smatch match;
-		for (CCNode* child : CCArrayExt<CCNode*>(newBestNodeProbably->getChildren())) {
+		std::vector<CCNode*> childrenRightNow;
+		for (CCNode* child : CCArrayExt<CCNode*>(newBestNodeProbably->getChildren())) childrenRightNow.push_back(child);
+		
+		for (CCNode* child : childrenRightNow) {
 			if (child->getID() == "next-key-when-compat-label"_spr) continue;
 
 			const auto hopefullyALabel = typeinfo_cast<CCLabelBMFont*>(child);
@@ -314,7 +319,7 @@ class $modify(MyPlayLayer, PlayLayer) {
 
 			if (!getModBool("changeDeathText")) continue;
 			auto fontID = getModInt("customFont");
-			auto labelParent = hopefullyALabel->getParent();
+			//auto labelParent = hopefullyALabel->getParent();
 			int labelZOrder = hopefullyALabel->getZOrder();
 
 			CCLabelBMFont* underlayLabel = nullptr;
@@ -327,7 +332,8 @@ class $modify(MyPlayLayer, PlayLayer) {
 				underlayLabel->setAnchorPoint(hopefullyALabel->getAnchorPoint());
 				underlayLabel->setExtraKerning(4);
 
-				if (labelParent) labelParent->addChild(underlayLabel, labelZOrder - 1);
+				newBestNodeProbably->addChild(underlayLabel, labelZOrder);
+				hopefullyALabel->setZOrder(labelZOrder + 1);
 				
 				hopefullyALabel->setFntFile("newBestFont.fnt"_spr);
 				hopefullyALabel->setExtraKerning(4);
